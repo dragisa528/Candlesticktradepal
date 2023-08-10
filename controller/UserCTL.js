@@ -1,4 +1,4 @@
-const { EqualizerRounded, CatchingPokemon, ContentPasteSearchOutlined } = require("@mui/icons-material");
+// const { EqualizerRounded, CatchingPokemon, ContentPasteSearchOutlined } = require("@mui/icons-material");
 const User = require("../model/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
