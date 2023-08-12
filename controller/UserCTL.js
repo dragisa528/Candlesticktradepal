@@ -28,7 +28,7 @@ const Register = async (req, res) => {
           country: req.body.cOuntry,
           password: hashedPassword,
           Phone: req.body.pHone,
-          periodL99999999999,
+          period: 99999999999,
           level: 1
           // producttype: req.body.pRotype,
           // paymentInfo: req.body.pAyment,
