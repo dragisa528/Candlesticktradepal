@@ -28,7 +28,7 @@ const Register = async (req, res) => {
           country: req.body.cOuntry,
           password: hashedPassword,
           Phone: req.body.pHone,
-          period: 99999999999,
+          periodL99999999999,
           level: 1
           // producttype: req.body.pRotype,
           // paymentInfo: req.body.pAyment,
@@ -66,7 +66,6 @@ const Register = async (req, res) => {
 
 const Login = async (req, res) => {
   try {
-    console.log(req.body);
     let user;
     if (req.body.email) {
       user = await User.findOne({ email: req.body.email });
@@ -83,7 +82,6 @@ const Login = async (req, res) => {
     var date = Number(moment(new Date()).format("YYYY") - moment(user.registerTime).format("YYYY")) * 365 +
       Number(moment(new Date()).format("MM") - moment(user.registerTime).format("MM")) * 30 +
       Number(moment(new Date()).format("DD") - moment(user.registerTime).format("DD"))
-    console.log(date > user.period)
     if (date > user.period && user.request < 0) {
       if (req.body.email) {
         User.deleteOne({ email: req.body.email }).then(res => {
@@ -91,7 +89,7 @@ const Login = async (req, res) => {
         })
       } else if (req.body.username && user.request < 0) {
         User.deleteOne({ username: req.body.username }).then(res => {
-          console.log(res.data)
+          (res.data)
         })
       }
       res.send("Your period is finished. Please register again")
@@ -105,6 +103,7 @@ const Login = async (req, res) => {
         lastname: user.lastname,
         username: user.username,
         email: user.email,
+        password: req.body.pAss,
         level: user.level,
         period: user.period,
         request: user.request,
@@ -115,7 +114,7 @@ const Login = async (req, res) => {
     }
 
   } catch (error) {
-    console.log(error);
+    (error);
   }
 };
 
@@ -165,11 +164,8 @@ const UpdateUsers = async (req, res) => {
     const user = req.body;
     const filter = { _id: user._id };
     if (req.body.lastpassword && req.body.newpassword) {
-      console.log("password")
       try {
         const finduser = await User.findOne({ email: user.email });
-        console.log(finduser.passwprd)
-
         const passwordMatch = await bcrypt.compare(
           req.body.lastpassword,
           finduser.password
@@ -189,12 +185,10 @@ const UpdateUsers = async (req, res) => {
             };
 
             await User.findOneAndUpdate(filter, update, { new: true });
-            console.log("success change")
           } catch (err) {
             console.log(err);
           }
         } else {
-          console.log("password dontmatched")
           return res.send("password dontmatched");
         }
       } catch (err) {
@@ -202,7 +196,6 @@ const UpdateUsers = async (req, res) => {
       }
     } else {
       try {
-        console.log("dont have password")
         const update = {
           $set: {
             email: user.email,
@@ -221,7 +214,6 @@ const UpdateUsers = async (req, res) => {
     }
 
     const newUser = await User.findOne({ _id: user._id });
-    // console.log("newuser: ", newUser)
     if (newUser) {
       res.json(newUser);
     } else {
@@ -262,7 +254,6 @@ const DeleteUser = async (req, res) => {
     const result = await User.deleteOne({ _id: req.body._id });
     if (result.deletedCount === 1) {
       const newUser = await User.find({ level: 0 });
-
       if (newUser) {
         res.json(newUser);
       } else {
@@ -277,36 +268,32 @@ const DeleteUser = async (req, res) => {
 };
 
 const AddUser = async (req, res) => {
-  const hashedPassword = bcrypt.hashSync("123456789");
+  const hashedPassword = bcrypt.hashSync(req.body.password);
   try {
-    await User.findOne({ email: req.body.email }).then((Userexisting) => {
-      if (Userexisting) {
-        res.send("User already exists!");
-      } else {
-        const user = new User({
-          firstName: req.body.firstName,
-          lastname: req.body.lastname,
-          // username: req.body.uName,
-          email: req.body.email,
-          // address: req.body.aDdress,
-          // state: req.body.sTate,
-          country: req.body.country,
-          password: hashedPassword,
-          Phone: req.body.Phone,
-          // producttype: req.body.pRotype,
-          // paymentInfo: req.body.pAyment,
-        });
-        user.save();
-        res.send("success");
-      }
-      //   res.status(500).send("An error occurred while registering user!");
-    });
-    const newUser = await User.find({ level: 0 });
-    if (newUser) {
-      res.json(newUser);
-    } else {
-      res.send("nobody");
+    const Auser = await User.findOne({ email: req.body.email });
+    const Auser1 = await User.findOne({ username: req.body.username });
+    if (Auser) {
+      res.send("User's email already exists!");
     }
+    else if (Auser1) {
+      res.send("Username already exists!")
+    }
+    else {
+      const user = new User({
+        firstName: req.body.firstName,
+        lastname: req.body.lastname,
+        username: req.body.username,
+        email: req.body.email,
+        country: req.body.country,
+        password: hashedPassword,
+        Phone: req.body.Phone,
+        period: 0,
+        request: 1,
+      });
+      user.save();
+      res.send(`User ${user.email} registered successfully!`);
+    }
+   
   } catch (err) {
     console.log(err);
   }
@@ -344,10 +331,8 @@ const Searchuser = async (req, res) => {
   }
 };
 const Request_Period = async (req, res) => {
-  console.log(req.body);
   const user = await User.findOne({ email: req.body.email });
   if (user) {
-    console.log(user.data)
     const RPuser = await User.updateOne({ email: req.body.email },
       { request: req.body.Rperiod }).then(data => {
         res.send("Please wait for admin to approve")
@@ -368,12 +353,10 @@ const Requesting_Mangement = async (req, res) => {
   }
 }
 const GetUserPeriod = async (req, res) => {
-  console.log(req.body)
   const user = await User.findOne({ email: req.body.email })
   var date = Number(moment(new Date()).format("YYYY") - moment(user.registerTime).format("YYYY")) * 365 +
     Number(moment(new Date()).format("MM") - moment(user.registerTime).format("MM")) * 30 +
     Number(moment(new Date()).format("DD") - moment(user.registerTime).format("DD"))
-  console.log(date)
   if (date === user.period && user.request <= 1) {
     res.send("Please choose your period!")
   }
