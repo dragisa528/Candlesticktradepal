@@ -1,3 +1,4 @@
+// const { EqualizerRounded, CatchingPokemon, ContentPasteSearchOutlined } = require("@mui/icons-material");
 const User = require("../model/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
@@ -68,52 +69,98 @@ const Login = async (req, res) => {
     let user;
     if (req.body.email) {
       user = await User.findOne({ email: req.body.email });
+      if (user) {
+        var date = Number(moment(new Date()).format("YYYY") - moment(user.registerTime).format("YYYY")) * 365 +
+          Number(moment(new Date()).format("MM") - moment(user.registerTime).format("MM")) * 30 +
+          Number(moment(new Date()).format("DD") - moment(user.registerTime).format("DD"))
+        if (user.period - date > 0) {
+          const filter = { _id: user._id };
+          const update = {
+            $set: {
+              period: user.period - date,
+            },
+          };
+          await User.findOneAndUpdate(filter, update, { new: true });
+        }
+        else {
+          User.deleteOne({ email: req.body.email }).then(res => {
+            console.log(res.data);
+            res.send("Your period is finished. Please register again")
+          })
+        }
+      }
+      else if (!user) {
+        return res.send("User Not Found");
+      }
+      // return;
+
     } else if (req.body.username) {
       user = await User.findOne({ username: req.body.username });
-    }
-    if (!user) {
-      return res.send("User Not Found");
+      if (user) {
+        var date = Number(moment(new Date()).format("YYYY") - moment(user.registerTime).format("YYYY")) * 365 +
+          Number(moment(new Date()).format("MM") - moment(user.registerTime).format("MM")) * 30 +
+          Number(moment(new Date()).format("DD") - moment(user.registerTime).format("DD"))
+        if (user.period - date > 0) {
+          const filter = { _id: user._id };
+          const update = {
+            $set: {
+              period: user.period - date,
+            },
+          };
+          await User.findOneAndUpdate(filter, update, { new: true });
+        }
+        else {
+          User.deleteOne({ username: req.body.username }).then(res => {
+            console.log(res.data)
+            res.send("Your period is finished. Please register again")
+          })
+        }
+      }
+      else if (!user) {
+        return res.send("User Not Found");
+      }
     }
     const passwordMatch = await bcrypt.compare(req.body.pAss, user.password);
     if (!passwordMatch) {
       return res.send("Password Dont Matched");
     }
-    var date = Number(moment(new Date()).format("YYYY") - moment(user.registerTime).format("YYYY")) * 365 +
-      Number(moment(new Date()).format("MM") - moment(user.registerTime).format("MM")) * 30 +
-      Number(moment(new Date()).format("DD") - moment(user.registerTime).format("DD"))
-    if (date > user.period && user.request < 0) {
-      if (req.body.email) {
-        User.deleteOne({ email: req.body.email }).then(res => {
-          console.log(res.data);
-        })
-      } else if (req.body.username && user.request < 0) {
-        User.deleteOne({ username: req.body.username }).then(res => {
-          (res.data)
-        })
-      }
-      res.send("Your period is finished. Please register again")
-    }
-    else {
-      const token = jwt.sign({ userId: user._id }, "bear");
-      const obj = {
-        userId: user._id,
-        level: user.level,
-        firstName: user.firstName,
-        lastname: user.lastname,
-        username: user.username,
-        email: user.email,
-        password: req.body.pAss,
-        level: user.level,
-        period: user.period,
-        request: user.request,
-        token: token,
-      };
+    // var date = Number(moment(new Date()).format("YYYY") - moment(user.registerTime).format("YYYY")) * 365 +
+    //   Number(moment(new Date()).format("MM") - moment(user.registerTime).format("MM")) * 30 +
+    //   Number(moment(new Date()).format("DD") - moment(user.registerTime).format("DD"))
+    // console.log(date > user.period)
+    // if (date > user.period && user.request < 0) {
+    //   if (req.body.email) {
+    //     User.deleteOne({ email: req.body.email }).then(res => {
+    //       console.log(res.data);
+    //     })
+    //   } else if (req.body.username && user.request < 0) {
+    //     User.deleteOne({ username: req.body.username }).then(res => {
+    //       console.log(res.data)
+    //     })
+    //   }
+    //   res.send("Your period is finished. Please register again")
+    // }
+    // else {
+    const token = jwt.sign({ userId: user._id }, "bear");
+    const obj = {
+      userId: user._id,
+      level: user.level,
+      firstName: user.firstName,
+      lastname: user.lastname,
+      username: user.username,
+      email: user.email,
+      password: req.body.pAss,
+      level: user.level,
+      period: user.period,
+      request: user.request,
+      token: token,
+    };
 
-      res.json(obj);
-    }
+    res.json(obj);
+    // }
 
   } catch (error) {
-    (error);
+    console.log(error);
   }
 };
 
@@ -163,8 +210,10 @@ const UpdateUsers = async (req, res) => {
     const user = req.body;
     const filter = { _id: user._id };
     if (req.body.lastpassword && req.body.newpassword) {
+      console.log("password")
       try {
         const finduser = await User.findOne({ email: user.email });
+        console.log(finduser.passwprd)
         const passwordMatch = await bcrypt.compare(
           req.body.lastpassword,
           finduser.password
@@ -184,10 +233,12 @@ const UpdateUsers = async (req, res) => {
             };
 
             await User.findOneAndUpdate(filter, update, { new: true });
+            console.log("success change")
           } catch (err) {
             console.log(err);
           }
         } else {
+          console.log("password dontmatched")
           return res.send("password dontmatched");
         }
       } catch (err) {
@@ -195,6 +246,7 @@ const UpdateUsers = async (req, res) => {
       }
     } else {
       try {
+        console.log("dont have password")
         const update = {
           $set: {
             email: user.email,
@@ -213,6 +265,7 @@ const UpdateUsers = async (req, res) => {
     }
 
     const newUser = await User.findOne({ _id: user._id });
+    // console.log("newuser: ", newUser)
     if (newUser) {
       res.json(newUser);
     } else {
@@ -292,7 +345,7 @@ const AddUser = async (req, res) => {
       user.save();
       res.send(`User ${user.email} registered successfully!`);
     }
-   
+
   } catch (err) {
     console.log(err);
   }
@@ -330,8 +383,10 @@ const Searchuser = async (req, res) => {
   }
 };
 const Request_Period = async (req, res) => {
+  console.log(req.body);
   const user = await User.findOne({ email: req.body.email });
   if (user) {
+    console.log(user.data)
     const RPuser = await User.updateOne({ email: req.body.email },
       { request: req.body.Rperiod }).then(data => {
         res.send("Please wait for admin to approve")
@@ -352,10 +407,12 @@ const Requesting_Mangement = async (req, res) => {
   }
 }
 const GetUserPeriod = async (req, res) => {
+  console.log(req.body)
   const user = await User.findOne({ email: req.body.email })
   var date = Number(moment(new Date()).format("YYYY") - moment(user.registerTime).format("YYYY")) * 365 +
     Number(moment(new Date()).format("MM") - moment(user.registerTime).format("MM")) * 30 +
     Number(moment(new Date()).format("DD") - moment(user.registerTime).format("DD"))
+  console.log(date)
   if (date === user.period && user.request <= 1) {
     res.send("Please choose your period!")
   }

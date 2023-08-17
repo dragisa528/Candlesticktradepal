@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const moment = require('moment-timezone');
 
 const UserSchema = new mongoose.Schema({
     firstName: {
@@ -43,7 +44,9 @@ const UserSchema = new mongoose.Schema({
     },
     registerTime: {
         type: Date,
-        default: Date.now
+        // default: Date.now
+        default: moment().tz('America/Chicago').format()
+
     },
     loginTime: {
         login_time: [String]
