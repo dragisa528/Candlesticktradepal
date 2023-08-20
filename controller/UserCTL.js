@@ -16,7 +16,10 @@ const Register = async (req, res) => {
       res.send("UserName already exists!");
     }
     else {
+      console.log(req.body)
       if (req.body.eMail === "admin@gmail.com" && req.body.pAss === "admin123") {
+        console.log(req.body)
+
         const newuser = new User({
           firstName: req.body.fName,
           lastname: req.body.lName,
@@ -28,7 +31,7 @@ const Register = async (req, res) => {
           country: req.body.cOuntry,
           password: hashedPassword,
           Phone: req.body.pHone,
-          periodL99999999999,
+          period: 99999999999,
           level: 1
           // producttype: req.body.pRotype,
           // paymentInfo: req.body.pAyment,
@@ -37,6 +40,7 @@ const Register = async (req, res) => {
         res.status(200).send(`User ${newuser.email} registered successfully!`);
       }
       else {
+        console.log(req.body)
         const newuser = new User({
           firstName: req.body.fName,
           lastname: req.body.lName,
@@ -73,7 +77,7 @@ const Login = async (req, res) => {
         var date = Number(moment(new Date()).format("YYYY") - moment(user.registerTime).format("YYYY")) * 365 +
           Number(moment(new Date()).format("MM") - moment(user.registerTime).format("MM")) * 30 +
           Number(moment(new Date()).format("DD") - moment(user.registerTime).format("DD"))
-        if (user.period - date > 0) {
+        if (user.period - date > 0 || user.request >= 1) {
           const filter = { _id: user._id };
           const update = {
             $set: {
@@ -100,7 +104,7 @@ const Login = async (req, res) => {
         var date = Number(moment(new Date()).format("YYYY") - moment(user.registerTime).format("YYYY")) * 365 +
           Number(moment(new Date()).format("MM") - moment(user.registerTime).format("MM")) * 30 +
           Number(moment(new Date()).format("DD") - moment(user.registerTime).format("DD"))
-        if (user.period - date > 0) {
+        if (user.period - date > 0 || user.request >= 1) {
           const filter = { _id: user._id };
           const update = {
             $set: {
@@ -124,41 +128,23 @@ const Login = async (req, res) => {
     if (!passwordMatch) {
       return res.send("Password Dont Matched");
     }
-    // var date = Number(moment(new Date()).format("YYYY") - moment(user.registerTime).format("YYYY")) * 365 +
-    //   Number(moment(new Date()).format("MM") - moment(user.registerTime).format("MM")) * 30 +
-    //   Number(moment(new Date()).format("DD") - moment(user.registerTime).format("DD"))
-    // console.log(date > user.period)
-    // if (date > user.period && user.request < 0) {
-    //   if (req.body.email) {
-    //     User.deleteOne({ email: req.body.email }).then(res => {
-    //       console.log(res.data);
-    //     })
-    //   } else if (req.body.username && user.request < 0) {
-    //     User.deleteOne({ username: req.body.username }).then(res => {
-    //       console.log(res.data)
-    //     })
-    //   }
-    //   res.send("Your period is finished. Please register again")
-    // }
-    // else {
-    const token = jwt.sign({ userId: user._id }, "bear");
-    const obj = {
-      userId: user._id,
-      level: user.level,
-      firstName: user.firstName,
-      lastname: user.lastname,
-      username: user.username,
-      email: user.email,
-      password: req.body.pAss,
-      level: user.level,
-      period: user.period,
-      request: user.request,
-      token: token,
-    };
-
-    res.json(obj);
-    // }
-
+    else {
+      const token = jwt.sign({ userId: user._id }, "bear");
+      const obj = {
+        userId: user._id,
+        level: user.level,
+        firstName: user.firstName,
+        lastname: user.lastname,
+        username: user.username,
+        email: user.email,
+        password: req.body.pAss,
+        level: user.level,
+        period: user.period,
+        request: user.request,
+        token: token,
+      };
+      res.json(obj);
+    }
   } catch (error) {
     console.log(error);
   }
@@ -387,7 +373,7 @@ const Request_Period = async (req, res) => {
   const user = await User.findOne({ email: req.body.email });
   if (user) {
     console.log(user.data)
-    const RPuser = await User.updateOne({ email: req.body.email },
+    await User.updateOne({ email: req.body.email },
       { request: req.body.Rperiod }).then(data => {
         res.send("Please wait for admin to approve")
       }).catch(err => {
@@ -408,7 +394,10 @@ const Requesting_Mangement = async (req, res) => {
 }
 const GetUserPeriod = async (req, res) => {
   console.log(req.body)
+  // return;
   const user = await User.findOne({ email: req.body.email })
+  // console.log(user)
+  // return;
   var date = Number(moment(new Date()).format("YYYY") - moment(user.registerTime).format("YYYY")) * 365 +
     Number(moment(new Date()).format("MM") - moment(user.registerTime).format("MM")) * 30 +
     Number(moment(new Date()).format("DD") - moment(user.registerTime).format("DD"))

@@ -45,7 +45,7 @@ const UserSchema = new mongoose.Schema({
     registerTime: {
         type: Date,
         // default: Date.now
-        default: moment().tz('America/Chicago').format()
+        default: moment().tz('America/California').format()
 
     },
     loginTime: {
