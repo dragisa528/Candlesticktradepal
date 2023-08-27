@@ -15,7 +15,9 @@
     "express": "^4.18.2",
     "moment-timezone": "^0.5.43",
     "mongoose": "^7.2.2",
-    "path": "^0.12.7"
+    "path": "^0.12.7",
+    "react-select": "^5.7.4",
+    "react-select-country-list": "^2.2.3"
   },
   "devDependencies": {
     "nodemon": "^2.0.22"

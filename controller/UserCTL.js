@@ -74,50 +74,56 @@ const Login = async (req, res) => {
     if (req.body.email) {
       user = await User.findOne({ email: req.body.email });
       if (user) {
-        var date = Number(moment(new Date()).format("YYYY") - moment(user.registerTime).format("YYYY")) * 365 +
-          Number(moment(new Date()).format("MM") - moment(user.registerTime).format("MM")) * 30 +
-          Number(moment(new Date()).format("DD") - moment(user.registerTime).format("DD"))
-        if (user.period - date > 0 || user.request >= 1) {
-          const filter = { _id: user._id };
-          const update = {
-            $set: {
-              period: user.period - date,
-            },
-          };
-          await User.findOneAndUpdate(filter, update, { new: true });
-        }
-        else {
-          User.deleteOne({ email: req.body.email }).then(res => {
-            console.log(res.data);
-            res.send("Your period is finished. Please register again")
-          })
+        if (user.flag !== new Date()) {
+          var date = Number(moment(new Date()).format("YYYY") - moment(user.registerTime).format("YYYY")) * 365 +
+            Number(moment(new Date()).format("MM") - moment(user.registerTime).format("MM")) * 30 +
+            Number(moment(new Date()).format("DD") - moment(user.registerTime).format("DD"))
+          // user.flag = new Date();
+          if (user.period - date > 0 && user.request == 0) {
+            const filter = { _id: user._id };
+            const update = {
+              $set: {
+                period: user.period - date,
+                flag: new Date()
+              },
+            };
+            await User.findOneAndUpdate(filter, update, { new: true });
+          }
+          else if (user.period - date <= 0 && user.request == 0) {
+            User.deleteOne({ email: req.body.email }).then(res => {
+              console.log(res.data);
+              res.send("Your period is finished. Please register again")
+            })
+          }
         }
       }
       else if (!user) {
         return res.send("User Not Found");
       }
-      // return;
-
     } else if (req.body.username) {
       user = await User.findOne({ username: req.body.username });
       if (user) {
-        var date = Number(moment(new Date()).format("YYYY") - moment(user.registerTime).format("YYYY")) * 365 +
-          Number(moment(new Date()).format("MM") - moment(user.registerTime).format("MM")) * 30 +
-          Number(moment(new Date()).format("DD") - moment(user.registerTime).format("DD"))
-        if (user.period - date > 0 || user.request >= 1) {
-          const filter = { _id: user._id };
-          const update = {
-            $set: {
-              period: user.period - date,
-            },
-          };
-          await User.findOneAndUpdate(filter, update, { new: true });
-        }
-        else {
-          User.deleteOne({ username: req.body.username }).then(res => {
-            console.log(res.data)
-            res.send("Your period is finished. Please register again")
-          })
+        if (user.flag !== new Date()) {
+          var date = Number(moment(new Date()).format("YYYY") - moment(user.registerTime).format("YYYY")) * 365 +
+            Number(moment(new Date()).format("MM") - moment(user.registerTime).format("MM")) * 30 +
+            Number(moment(new Date()).format("DD") - moment(user.registerTime).format("DD"))
+          // user.flag = new Date();
+          if (user.period - date > 0 && user.request == 1) {
+            const filter = { _id: user._id };
+            const update = {
+              $set: {
+                period: user.period - date,
+                flag: new Date()
+              },
+            };
+            await User.findOneAndUpdate(filter, update, { new: true });
+          }
+          else if (user.period - date <= 0 && user.request == 0) {
+            User.deleteOne({ username: req.body.username }).then(res => {
+              console.log(res.data)
+              res.send("Your period is finished. Please register again")
+            })
+          }
         }
       }
       else if (!user) {
@@ -375,7 +381,7 @@ const Request_Period = async (req, res) => {
     console.log(user.data)
     await User.updateOne({ email: req.body.email },
       { request: req.body.Rperiod }).then(data => {
-        res.send("Please wait for admin to approve")
+        res.send("Please wait for your request to be processed.")
       }).catch(err => {
         console.log(err)
       })

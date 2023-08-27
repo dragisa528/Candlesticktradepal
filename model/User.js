@@ -65,6 +65,9 @@ const UserSchema = new mongoose.Schema({
     },
     request: {
         type: Number
+    },
+    flag: {
+        type: Date,
     }
 
 })
