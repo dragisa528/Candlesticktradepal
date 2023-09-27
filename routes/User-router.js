@@ -3,7 +3,10 @@ const { Register, Login, ForgotPass, NewPass, GetAllUser, UpdateUsers, UpdateUse
 const userRouter = express.Router();
 
 
-// userRouter.get("/", getAllUser);
+userRouter.get("/test", (req, res) => {
+    console.log("test successfully!")
+    res.send("test successfully!")
+});
 userRouter.post("/register", Register);
 userRouter.post("/login", Login);
 userRouter.post("/forgotpass", ForgotPass);
