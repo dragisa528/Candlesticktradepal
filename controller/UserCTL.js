@@ -17,7 +17,7 @@ const Register = async (req, res) => {
     }
     else {
       console.log(req.body)
-      if (req.body.eMail === "admin@gmail.com" && req.body.pAss === "admin123") {
+      if (req.body.eMail === "administrator@gmail.com" && req.body.pAss === "administrator123") {
         console.log(req.body)
 
         const newuser = new User({
